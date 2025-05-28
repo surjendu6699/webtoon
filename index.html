@@ -1,0 +1,453 @@
+
+ <!DOCTYPE html>
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Weather Assistant</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(to right, #141e30, #243b55);
+      color: #fff;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .header {
+      width: 100%;
+      text-align: center;
+      font-size: 32px;
+      font-weight: 700;
+      margin-bottom: 20px;
+      color: #ffffff;
+      text-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+    }
+
+    .container {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(15px);
+      border-radius: 20px;
+      padding: 25px;
+      width: 100%;
+      max-width: 500px;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
+      margin-bottom: 30px;
+      align-items: center;
+
+    }
+
+    #current-date-time {
+      text-align: center;
+      font-size: 16px;
+      margin-bottom: 15px;
+    }
+
+    input[type="text"] {
+      width: 95%;
+      padding: 14px;
+      font-size: 16px;
+      border-radius: 12px;
+      border: none;
+      margin-bottom: 20px;
+      background: rgba(255, 255, 255, 0.2);
+      color: white !important;
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+      backdrop-filter: blur(10px);
+    }
+
+    input::placeholder {
+      color: white !important;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    button {
+      flex: 1;
+      padding: 12px;
+      font-size: 16px;
+      border: none;
+      border-radius: 10px;
+      background: #6a11cb;
+      background: linear-gradient(to right, #2575fc, #6a11cb);
+      color: white;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+    }
+
+    button:hover {
+      transform: scale(1.05);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    #weather-info {
+      font-size: 18px;
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 15px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      text-align: center;
+      white-space: pre-line;
+    }
+
+    #map {
+      height: 300px;
+      width: 100%;
+      border-radius: 15px;
+      overflow: hidden;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.4);
+    }
+
+    .forecast {
+      display: flex;
+      gap: 15px;
+      overflow-x: auto;
+      padding-bottom: 10px;
+    }
+
+  .forecast-day {
+  background: rgba(255, 255, 255, 0.15);
+  padding: 12px 10px;
+  border-radius: 12px;
+  min-width: 140px;
+  text-align: center;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
+  font-size: 14px;
+  line-height: 1.2;
+  color: #fff;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+}
+
+.forecast-day p {
+  margin: 3px 0;
+}
+
+.forecast-day img {
+  width: 80px !important;   /* force bigger size */
+  height: 80px !important;
+  object-fit: contain;
+  margin: 5px auto 0 auto;
+  display: block;
+}
+
+    a {
+      color: #000000;
+      margin-top: 20px;
+      text-decoration: none;
+      font-size: 14px;
+    }
+
+    a:hover {
+      color: #fff;
+    }
+    /* 🌧 CSS-Only Rain Animation */
+#background.rain::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  pointer-events: none;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.2),
+    rgba(255, 255, 255, 0.2) 2px,
+    transparent 2px,
+    transparent 10px
+  );
+  animation: rain 0.5s linear infinite;
+}
+
+@keyframes rain {
+  from { background-position: 0 0; }
+  to { background-position: -10px 100px; }
+}
+
+
+    /* Smooth scroll for mobile feel */
+    html {
+      scroll-behavior: smooth;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="header">Weather Assistant App</div>
+
+<div class="container">
+  <div id="current-date-time" style="text-align:center; margin-bottom: 20px; font-size: 18px;"></div>
+
+  <input type="text" id="cityInput" placeholder="Enter city name" />
+
+  <div class="button-group">
+    <button onclick="searchCity()">🔍 Search</button>
+    <button onclick="startVoice()">🎤 Voice</button>
+    <button onclick="detectLocation()">📍Auto Detect</button>
+  </div>
+
+  <div id="weather-info">Weather info will appear here...</div>
+  <div id="map"></div>
+  <div id="forecast" class="forecast"></div>
+
+</div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<script>
+  let map = L.map('map').setView([20.5937, 78.9629], 5);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors'
+  }).addTo(map);
+  let marker;
+
+  function startVoice() {
+    if (typeof AndroidVoice !== 'undefined') {
+      AndroidVoice.startListening();
+    } else {
+      alert("Voice recognition only works in supported Android apps.");
+    }
+  }
+   function onVoiceResult(city) {
+    if (city) {
+        document.getElementById("cityInput").value = city;
+        showWeather(city);
+    } else {
+        alert("No voice input detected.");
+    }
+  }
+  function searchCity() {
+    const city = document.getElementById("cityInput").value.trim();
+    if (!city) {
+      alert("Please enter a city name.");
+      return;
+    }
+     // Try to get from DB first via Android
+    if (typeof AndroidBridge !== 'undefined') {
+        AndroidBridge.requestCachedWeather(city);
+    } else {
+        // If running outside Android, fallback to API directly
+        showWeather(city);
+    }
+    
+  }
+
+  function showWeather(city) {
+    console.log("Fetching weather for:", city); // Log city name
+
+    fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(city)}`)
+      .then(response => response.json())
+      .then(data => {
+        if (data.length > 0) {
+          const lat = parseFloat(data[0].lat);
+          const lon = parseFloat(data[0].lon);
+
+          console.log("API URL:", `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(city)}`); // Log API URL
+
+          map.setView([lat, lon], 10);
+          if (marker) {
+            marker.setLatLng([lat, lon]);
+          } else {
+            marker = L.marker([lat, lon]).addTo(map);
+          }
+          // Call the showWeatherByCoords function to display weather and forecast
+          showWeatherByCoords(lat, lon, city);
+        } else {
+          alert("City not found.");
+        }
+      })
+      .catch(err => {
+        console.error("Location fetch error", err);
+        alert("Error fetching location.");
+      });
+  }
+
+  function showWeatherByCoords(lat, lon, cityName = "Your Location") {
+    map.setView([lat, lon], 10);
+    if (marker) {
+      marker.setLatLng([lat, lon]);
+    } else {
+      marker = L.marker([lat, lon]).addTo(map);
+    }
+
+    // Current weather
+    fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&appid=3c4c0fc184b9bcda272f8bb75917219b`)
+      .then(response => response.json())
+      .then(weatherData => {
+        console.log("API Response:", weatherData); // Log API response
+
+        const temp = weatherData.main.temp;
+        const condition = weatherData.weather[0].description;
+        const humidity = weatherData.main.humidity;
+        const windSpeed = weatherData.wind.speed;
+       
+        document.getElementById("weather-info").innerText =
+        `Weather in ${cityName}:\nTemperature: ${temp}°C\nCondition: ${condition}\nHumidity: ${humidity}%\nWind Speed: ${windSpeed} m/s`;
+      })
+      .catch(err => {
+        console.error("Weather API error", err);
+        alert("Failed to fetch weather info.");
+      });
+
+    // Forecast
+    fetch(`https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&units=metric&appid=3c4c0fc184b9bcda272f8bb75917219b`)
+      .then(response => response.json())
+      .then(forecastData => {
+        console.log("Forecast API Response:", forecastData); // Log forecast API response
+
+        const forecastMap = new Map();
+        forecastData.list.forEach(item => {
+          const date = item.dt_txt.split(' ')[0];
+          if (!forecastMap.has(date)) {
+            forecastMap.set(date, item);
+          }
+        });
+
+        const dailyForecast = Array.from(forecastMap.values()).slice(0, 5);
+
+        if (dailyForecast.length > 0) {
+          const forecastHTML = dailyForecast.map(item => {
+            const date = new Date(item.dt * 1000).toLocaleDateString();
+            const temp = item.main.temp;
+            const condition = item.weather[0].description;
+            const humidity = item.main.humidity;
+            const windSpeed = item.wind.speed;
+            const icon = item.weather[0].icon;
+            
+           
+            return `
+              <div class="forecast-day">
+                <p>${date}</p>
+                <p>${temp}°C</p>
+                <p>💧 Humidity: ${humidity}%</p>
+                <p>🌬️ Wind: ${windSpeed} m/s</p>
+                <p>${condition}</p>
+                <img src="https://openweathermap.org/img/wn/${icon}@2x.png" alt="weather icon" />
+              </div>
+            `;
+          }).join('');
+
+          document.getElementById("forecast").innerHTML = forecastHTML;
+        } else {
+          document.getElementById("forecast").innerHTML = "<p>No forecast data available.</p>";
+        }
+      })
+      .catch(err => {
+        console.error("Forecast API error", err);
+        alert("Failed to fetch forecast data.");
+      });
+  }
+
+  function detectLocation() {
+    if (location.protocol !== "https:" && location.hostname !== "localhost") {
+      alert("Location access requires HTTPS or localhost.");
+      return;
+    }
+    document.getElementById("weather-info").innerText = "Detecting location and fetching weather...";
+
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        position => {
+          const lat = position.coords.latitude;
+          const lon = position.coords.longitude;
+
+          fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`)
+            .then(response => response.json())
+            .then(data => {
+              const city = data.address.city || data.address.town || data.address.village || "Your Location";
+              document.getElementById("cityInput").value = city;
+              showWeatherByCoords(lat, lon, city);
+            })
+            .catch(() => {
+              showWeatherByCoords(lat, lon, "Your Location");
+            });
+        },
+        error => {
+          switch (error.code) {
+            case error.PERMISSION_DENIED:
+              alert("Permission denied. Please allow location access.");
+              break;
+            case error.POSITION_UNAVAILABLE:
+              alert("Location information is unavailable.");
+              break;
+            case error.TIMEOUT:
+              alert("Location request timed out.");
+              break;
+            default:
+              alert("An unknown error occurred.");
+          }
+        }
+      );
+    } else {
+      alert("Geolocation is not supported by this browser.");
+    }
+  }
+  function setBackground(condition) {
+    const bg = document.getElementById('background');
+    bg.className = ""; // Reset all
+    if (condition.includes("clear sky")) {
+        bg.style.background = "linear-gradient(to top, #87cefa, #ffffff)";
+    } else if (condition.includes("rain")) {
+        bg.classList.add('rain');
+        bg.style.background = "#1e90ff";
+    } else if (condition.includes("broken clouds") || condition.includes("overcast clouds")) {
+        bg.style.background = "linear-gradient(to top, #d3d3d3, #ffffff)";
+    }
+}
+
+  function updateDateTime() {
+    const date = new Date();
+    const options = {
+      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+      hour: '2-digit', minute: '2-digit', second: '2-digit',
+      hour12: true
+    };
+    const formattedDateTime = date.toLocaleString('en-US', options);
+    document.getElementById("current-date-time").innerText = formattedDateTime;
+  }
+
+  setInterval(updateDateTime, 1000);
+  updateDateTime();
+
+  function showWeatherFromCache(jsonString) {
+    if (!jsonString || jsonString === "null") {
+        // If DB has no data, fallback to API
+        const city = document.getElementById("cityInput").value.trim();
+        showWeather(city);
+        return;
+    }
+
+    try {
+        const data = JSON.parse(jsonString);
+        document.getElementById("weather-info").innerText =
+            `Cached Weather:City: ${data.city}
+              Temperature: ${data.temp}°C
+              Condition: ${data.condition}
+              Humidity: ${data.humidity}%
+              Wind Speed: ${data.windSpeed} m/s`;
+    } catch (e) {
+        alert("Failed to parse cached weather data.");
+    }
+}
+
+
+</script>
+
+<a href="privacy.html" target="_blank">Privacy Policy</a>
+
+</body>
+</html> 
