@@ -1,0 +1,54 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Privacy Policy - Weather Assistant</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: auto;
+            padding: 20px;
+            background: #f4f4f4;
+            color: #333;
+        }
+        h1, h2 {
+            color: #005b96;
+        }
+        a {
+            color: #005b96;
+        }
+    </style>
+</head>
+<body>
+    <h1>Privacy Policy for Weather Assistant App</h1>
+    <p><strong>Effective Date:</strong> May 12, 2025</p>
+
+    <h2>1. Information We Collect</h2>
+    <p><strong>a. Location:</strong> Used to display local weather. Not stored or shared.</p>
+    <p><strong>b. Microphone:</strong> Used for voice commands. Data not stored or recorded.</p>
+    <p><strong>c. WebView:</strong> Content loaded from:
+        <ul>
+            <li>https://surjendu6699.github.io/surjendu/</li>
+            <li>https://api.openweathermap.org</li>
+        </ul>
+    </p>
+
+    <h2>2. Data Usage</h2>
+    <p>All information is used only for weather-related functions. Nothing is sold or shared.</p>
+
+    <h2>3. Third-Party Services</h2>
+    <ul>
+        <li>OpenWeatherMap - Weather data</li>
+        <li>Google Speech Recognition - Voice input</li>
+    </ul>
+
+    <h2>4. Children's Privacy</h2>
+    <p>This app is not meant for users under 13.</p>
+
+    <h2>5. Contact</h2>
+    <p>Email: <a href="mailto:surjendu1234567890@gmail.com">surjendu1234567890@gmail.com</a></p>
+</body>
+</html>
